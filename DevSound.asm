@@ -2,6 +2,12 @@
 ; Macros
 ; ================================================================
 
+%macro ds_memcopy 2
+    mov     si,%1
+    mov     cx,%2
+    rep     movsw
+%endmacro
+
 ; TODO: Find a better way to do this
 %macro startmem 1
 %assign MemBase %1
@@ -20,15 +26,6 @@
 %macro defbytes 2
 %1 equ MemBase
 %assign MemBase MemBase + %2
-%endmacro
-
-%macro startcmd 0
-%assign CmdBase 0x80
-%endmacro
-
-%macro defcmd 1
-%1: equ CmdBase
-%assign CmdBase CmdBase+1
 %endmacro
 
 %macro wave 32
@@ -52,15 +49,22 @@
 
 ; note, octave, length
 %macro note 3
-    db  ((%1 * 12) + %2) - 7
+    db  ((%2 * 12) + %1) - 7
+    db  %3
 %endmacro
 
 ; ================================================================
 ; Command definitions
 ; ================================================================
 
-startcmd
-defcmd  sound_end
+%macro instrument 1
+    db  0xFF
+    dw  %1
+%endmacro
+
+%macro sound_end 0
+    db  0xFF
+%endmacro
 
 ; ================================================================
 ; Note definitions
@@ -84,12 +88,13 @@ B_  equ 12
 ; ================================================================
 startmem 0
 
-defbytes DS_WaveBuffer,32
+defbytes DS_WaveBuffer,64
 
 defbyte DS_Playing
 defbyte DS_Speed1
 defbyte DS_Speed2
 defbyte DS_GlobalTick
+defbyte DS_TickCount
 
 defbyte DS_CH1Mode
 defword DS_CH1Ptr
@@ -137,6 +142,8 @@ defbyte DS_CH4VibratoPhase
 
 ; ================================================================
 
+db  "DevSound-WS by DevEd | deved8@gmail.com"
+
 ; Initialize sound playback.
 ; Call this once during your game's init routine.
 DS_Init:
@@ -166,6 +173,17 @@ DS_Init:
     mov     di,DS_CH4Ptr
     mov     cl,5
     rep     stosw
+    ; initialize waveforms
+    mov     ax,0xF000
+    mov     ds,ax
+    mov     di,DS_WaveBuffer
+    ds_memcopy DS_DefaultWave,8
+    ds_memcopy DS_DefaultWave,8
+    ds_memcopy DS_DefaultWave,8
+    ds_memcopy DS_DefaultWave,8
+    ; reset playing flag
+    mov     al,0xFF
+    mov     [es:DS_Playing],al
     ret
 
 ; ================================================================
@@ -174,24 +192,37 @@ DS_Init:
 ; INPUT: si = song pointer
 DS_Load:
     ret
-
+ 
 ; ================================================================
 
 ; Call this once per frame.
 DS_Update:
-;    pusha
-;    mov     dx,REG_SND_CH1_PITCH
-;    mov     si,DS_FreqTable
-;    add     si,ax
-;    add     si,ax
-;    mov     ax,[cs:si]
-;    out     dx,ax
-;    popa
+    pusha
+    mov     al,[es:DS_GlobalTick]
+    dec     al
+    mov     [es:DS_GlobalTick],al
+    jne     .done
+    mov     al,[es:DS_TickCount]
+    inc     al
+    mov     [es:DS_TickCount],al
+    ror     al,1
+    jnc     .eventick
+.oddtick:
+    mov     al,[es:DS_Speed1]
+    jmp     .settick
+.eventick:
+    mov     al,[es:DS_Speed2]
+.settick:
+    mov     [es:DS_GlobalTick],al
+    ; TODO: sequence reading + parsing
+.done:
+    call    DS_UpdateRegisters
+    popa
     ret
-
+ 
 ; ================================================================
 
-DS_Stop:
+DS_UpdateRegisters:
     ret
 
 ; ================================================================
@@ -211,5 +242,18 @@ DS_FreqTable:
     dw      0x7e9,0x7ea,0x7eb,0x7ec,0x7ed,0x7ee,0x7ef,0x7f0,0x7f1,0x7f2,0x7f3,0x7f3 ; 8
     dw      0x7f4,0x7f5,0x7f5,0x7f6,0x7f6,0x7f7,0x7f7,0x7f8,0x7f8,0x7f9,0x7f9,0x7f9 ; 9
 
+; ================================================================
+
 DS_DummySequence:
-    db  sound_end
+    sound_end
+
+DS_TestSequence:
+    note    C_,3,4
+    note    D_,3,4
+    note    E_,3,4
+    note    F_,3,4
+    note    G_,3,4
+    note    A_,3,4
+    note    B_,3,4
+    note    C_,4,4
+    sound_end

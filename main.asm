@@ -45,21 +45,11 @@ ProgramStart:
     in      al,REG_LCD_CTRL
     or      al,0b00000001
     out     REG_LCD_CTRL,al
-
-;    memcopy 0x0000,0xF000,DS_TestWave,8
-
-;    mov     si,FreqTable
-;    mov     cx,56
-;    add     si,cx
-;    mov     ax,[cs:si]
     
-;    jnz     .loop
-
-;.loop:
-;    mov     ax,
-;    jnz     .loop
-
-    ; sound test
+    mov     al,5
+    mov     [es:DS_Speed1],al
+    dec     al
+    mov     [es:DS_Speed2],al
     
     xor     ax,ax
     call    DS_Init
@@ -67,7 +57,7 @@ ProgramStart:
 MainLoop:
 ;    mov     cx,15
 ;    call    WaitFrames
-;    call    DS_Play
+    call    DS_Update
 
     push    ax
     call    WaitVBlank
