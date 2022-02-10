@@ -10,12 +10,12 @@ def main(argv):
 				of.write("\n    dw      ")
 			x = float(argv[0]) * pow(2, (i - 69) / 12)
 			y = 2048 - (3072000 / 32 / x)
-			of.write('$%x,' % int(y))
+			of.write('0x%x,' % int(y))
 		of.close()
 	else:
 		x = float(argv[0]) * pow(2, (float(argv[1]) - 69) / 12)
 		y = 2048 - (3072000 / 32 / x)
-		print("a =",argv[0],"  midi note:",argv[1],"  freq:",x,"  WS:",'$%x'%int(y))
+		print("a =",argv[0],"  midi note:",argv[1],"  freq:",x,"  WS:",'0x%x'%int(y))
 	
 if __name__ == "__main__":
 	main(sys.argv[1:])
