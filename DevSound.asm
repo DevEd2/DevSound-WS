@@ -155,16 +155,16 @@ DS_Init:
     ; initialize pointers
     mov     ax,DS_DummySequence
     mov     di,DS_CH1Ptr
-    mov     cx,5
+    mov     cl,5
     rep     stosw
     mov     di,DS_CH2Ptr
-    mov     cx,5
+    mov     cl,5
     rep     stosw
     mov     di,DS_CH3Ptr
-    mov     cx,5
+    mov     cl,5
     rep     stosw
     mov     di,DS_CH4Ptr
-    mov     cx,5
+    mov     cl,5
     rep     stosw
     ret
 

@@ -20,9 +20,12 @@
 section .code start=0
 
 ProgramStart:
-;    jmp     ProgramStart
     cli
     xor     ax,ax
+    mov     bx,ax
+    mov     cx,ax
+    mov     dx,ax
+    mov     es,ax
     out     REG_DISP_CTRL,ax
     out     REG_LCD_CTRL,ax
     mov     al,0b11100000
