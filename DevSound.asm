@@ -182,11 +182,13 @@ defword DS_CH1VolPosR
 defword DS_CH1WavePos
 defword DS_CH1ArpPos
 defbyte DS_CH1Note
+defbyte DS_CH1Transpose
+defbyte DS_CH1Volume
 defbyte DS_CH1LoopCount
 defbyte DS_CH1Tick
 defbyte DS_CH1VibratoParams
 defbyte DS_CH1VibratoPhase
-defbytes DS_Reserved1,5
+defbytes DS_Reserved1,3
 
 defbyte DS_CH2Playing
 defbyte DS_CH2Mode
@@ -201,11 +203,13 @@ defword DS_CH2VolPosR
 defword DS_CH2WavePos
 defword DS_CH2ArpPos
 defbyte DS_CH2Note
+defbyte DS_CH2Transpose
+defbyte DS_CH2Volume
 defbyte DS_CH2LoopCount
 defbyte DS_CH2Tick
 defbyte DS_CH2VibratoParams
 defbyte DS_CH2VibratoPhase
-defbytes DS_Reserved2,5
+defbytes DS_Reserved2,3
 
 defbyte DS_CH3Playing
 defbyte DS_CH3Mode
@@ -220,11 +224,13 @@ defword DS_CH3VolPosR
 defword DS_CH3WavePos
 defword DS_CH3ArpPos
 defbyte DS_CH3Note
+defbyte DS_CH3Transpose
+defbyte DS_CH3Volume
 defbyte DS_CH3LoopCount
 defbyte DS_CH3Tick
 defbyte DS_CH3VibratoParams
 defbyte DS_CH3VibratoPhase
-defbytes DS_Reserved3,5
+defbytes DS_Reserved3,3
 
 defbyte DS_CH4Playing
 defbyte DS_CH4Mode
@@ -240,10 +246,12 @@ defword DS_CH4WavePos
 defword DS_CH4ArpPos
 defbyte DS_CH4LoopCount
 defbyte DS_CH4Note
+defbyte DS_CH4Transpose
+defbyte DS_CH4Volume
 defbyte DS_CH4Tick
 defbyte DS_CH4VibratoParams
 defbyte DS_CH4VibratoPhase
-defbytes DS_Reserved4,5
+defbytes DS_Reserved4,3
 
 ; ================================================================
 
@@ -367,8 +375,9 @@ DS_Update:
 .skip:
     popa
     ret
+    
+; ================================================================
 
-    ; fall through
 DS_UpdateCH1:
     mov     al,[es:DS_CH1Playing]
     dec     al
@@ -394,22 +403,25 @@ DS_UpdateCH1:
     lodsb
     mov     [es:DS_CH1Tick],al
     xor     ax,ax
-    mov     di,es:DS_CH1VolPosL
+    mov     di,DS_CH1VolPosL
     mov     cx,4
     rep     stosw
     jmp     .done
 .isrest:
+    mov     [es:DS_CH1Note],al
+    lodsb
+    mov     [es:DS_CH1Tick],al
+    xor     al,al
+    mov     [es:DS_CH1Volume],al
     jmp     .done
 .iscommand:
     cmp     al,0xff
     jz      .endchannel
     ; TODO: Parse commands
-    
     cmp     al,0x80
     jnz     .parseloop
     inc     si
     inc     si
-    
     
     jmp     .parseloop
 .done:
@@ -421,7 +433,61 @@ DS_UpdateCH1:
 ; ================================================================
 
 DS_UpdateRegisters:
+
+DS_UpdateRegisters_CH1:
+    ; set volume level
+;    mov     si,[es:DS_CH1VolPtrL]
+    mov     si,DS_TestVolumeSeq.left
+    mov     ax,[es:DS_CH1VolPosL]
+    mov     cx,ax
+    add     si,ax
+;    mov     al,[es:si]
+    mov     al,[ds:si]
+    rol     al,4
+    mov     bl,al
+;    mov     si,[es:DS_CH1VolPtrR]
+    mov     si,DS_TestVolumeSeq.right
+    mov     ax,[es:DS_CH1VolPosR]
+    add     si,ax
+;    mov     al,[es:si]
+    mov     al,[ds:si]
+    or      al,bl
+    out     REG_SND_CH1_VOL,al
+    mov     [es:DS_CH1Volume],al
+    mov     ax,cx
+    inc     ax
+    mov     di,DS_CH1VolPosL
+    stosw
+    stosw
+    ; set transpose (TODO)
+    
+    ; set waveform (TODO)
+    
+    ; set note frequency
+    mov     al,[es:DS_CH1Transpose]
+    cmp     al,0x40
+    jb      .transposeup
+    cmp     al,0x7F
+    ja      .setfreq
+.transposeup:
+    mov     bl,al
+    mov     al,[es:DS_CH1Note]
+    add     al,bl
+    jmp     .setfreq
+.transposedown:
+    sub     al,0x40
+    mov     bl,al
+    mov     al,[es:DS_CH1Note]
+    sub     al,bl
+.setfreq:
+    mov     si,DS_FreqTable
+    add     si,ax
+    add     si,ax
+    mov     ax,[cs:si]
+    mov     dx,REG_SND_CH1_PITCH
+    out     dx,ax
     ret
+
 
 ; ================================================================
 
@@ -451,8 +517,8 @@ DS_DummySequence:
 DS_TestInstrument:  dw  DS_TestVolumeSeq,DS_TestWaveSeq,DS_TestArpSeq
 
 DS_TestVolumeSeq:   dw  .left,.right
-.left:  db  15,14,13,12,11,11,10,10,9,8,7,8,9,8,7,8,9,8,7,8,9,8,7,6,5,4,3,2,1,0,seq_end
-.right  db  15,14,13,12,11,10, 9, 8,7,8,9,8,7,8,9,8,7,8,9,8,7,8,7,6,5,4,3,2,1,0,seq_end
+.left:  db  15,14,13,12,11,11,10,10,9,8,7,8,9,8,7,8,9,8,7,8,9,8,7,7,6,6,5,5,4,4,3,3,2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,seq_end
+.right  db  15,14,13,12,11,10, 9, 8,7,8,9,8,7,8,9,8,7,8,9,8,7,8,7,7,6,6,5,5,4,4,3,3,2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,seq_end
 
 DS_TestWaveSeq:
     db  0,seq_end
