@@ -4,6 +4,7 @@
     %define WS_INCLUDE
 
 CPU 186 ; CPU is actually NEC V30, which supports 186 instructions but the extra NEC instructrions aren't supported by NASM
+
 ; Cartridge footer constants
 
 ORIENTATION_HORIZONTAL  equ 0b00000000

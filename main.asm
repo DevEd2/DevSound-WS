@@ -46,17 +46,11 @@ ProgramStart:
     or      al,0b00000001
     out     REG_LCD_CTRL,al
     
-    mov     al,5
-    mov     [es:DS_Speed1],al
-    dec     al
-    mov     [es:DS_Speed2],al
-    
-    xor     ax,ax
     call    DS_Init
+    mov     si,DS_TestSong
+    call    DS_Load
 
 MainLoop:
-;    mov     cx,15
-;    call    WaitFrames
     call    DS_Update
 
     push    ax
