@@ -1,2 +1,2 @@
 @echo off
-nasm -o rom.ws main.asm
+nasm -o DevSound.ws main.asm
