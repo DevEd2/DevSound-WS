@@ -190,11 +190,12 @@ defword DS_CH1ArpPos
 defbyte DS_CH1Note
 defbyte DS_CH1Transpose
 defbyte DS_CH1Volume
+defbyte DS_CH1Wave
 defbyte DS_CH1LoopCount
 defbyte DS_CH1Tick
 defbyte DS_CH1VibratoParams
 defbyte DS_CH1VibratoPhase
-defbytes DS_Reserved1,3
+defbytes DS_Reserved1,2
 
 defbyte DS_CH2Playing
 defbyte DS_CH2Mode
@@ -211,11 +212,12 @@ defword DS_CH2ArpPos
 defbyte DS_CH2Note
 defbyte DS_CH2Transpose
 defbyte DS_CH2Volume
+defbyte DS_CH2Wave
 defbyte DS_CH2LoopCount
 defbyte DS_CH2Tick
 defbyte DS_CH2VibratoParams
 defbyte DS_CH2VibratoPhase
-defbytes DS_Reserved2,3
+defbytes DS_Reserved2,2
 
 defbyte DS_CH3Playing
 defbyte DS_CH3Mode
@@ -232,11 +234,12 @@ defword DS_CH3ArpPos
 defbyte DS_CH3Note
 defbyte DS_CH3Transpose
 defbyte DS_CH3Volume
+defbyte DS_CH3Wave
 defbyte DS_CH3LoopCount
 defbyte DS_CH3Tick
 defbyte DS_CH3VibratoParams
 defbyte DS_CH3VibratoPhase
-defbytes DS_Reserved3,3
+defbytes DS_Reserved3,2
 
 defbyte DS_CH4Playing
 defbyte DS_CH4Mode
@@ -254,10 +257,11 @@ defbyte DS_CH4LoopCount
 defbyte DS_CH4Note
 defbyte DS_CH4Transpose
 defbyte DS_CH4Volume
+defbyte DS_CH4Wave
 defbyte DS_CH4Tick
 defbyte DS_CH4VibratoParams
 defbyte DS_CH4VibratoPhase
-defbytes DS_Reserved4,3
+defbytes DS_Reserved4,2
 
 ; ================================================================
 
@@ -512,8 +516,34 @@ DS_UpdateRegisters_CH1:
     sub     cx,ax
 .continue3:
     mov     [es:DS_CH1ArpPos],cx
-    
-    ; set waveform (TODO)
+
+    ; Wavetable logic
+;    mov si,[es:DS_CH1WavePtr]
+    mov     si,DS_TestWaveSeq
+    mov     ax,[es:DS_CH1WavePos]
+    mov     cx,ax
+    add     si,ax
+;    mov     al,[es:si]
+    mov     al,[ds:si]
+    cmp     al,seq_end
+    jz      .skipwave
+    cmp     al,seq_loop
+    jz      .loopwave
+    ; default case: set wave
+    mov     [es:DS_CH1Wave],al
+    inc     cx
+    jmp     .continue4
+.skipwave:
+    dec     si
+    mov     al,[ds:si]
+    jmp     .continue3
+.loopwave:
+    inc     si
+    mov     al,[ds:si]
+    mov     ah,0
+    sub     cx,ax
+.continue4:
+    mov     [es:DS_CH1WavePos],cx
     
     ; set note frequency
     mov     al,[es:DS_CH1Transpose]
@@ -538,6 +568,17 @@ DS_UpdateRegisters_CH1:
     mov     ax,[cs:si]
     mov     dx,REG_SND_CH1_PITCH
     out     dx,ax
+    
+    ; load waveform
+    mov     al,[es:DS_CH1Wave]
+    mov     ah,0
+    mov     si,[ds:DS_WavePointers]
+    add     si,ax
+    add     si,ax
+    mov     di,DS_WaveBuffer
+    mov     cl,8
+    rep     movsw
+    
     ret
 
 ; ================================================================
@@ -549,10 +590,14 @@ DS_LoadInstrument:
 ; ================================================================
 
 DS_WavePointers:
-    dw      DS_DefaultWave
+    dw      DS_SineWave
+    dw      DS_SquareWave
+    dw      DS_SawtoothWave
 
 DS_DefaultWave:
-    wave    08,10,12,13,14,14,15,15,15,15,14,14,13,12,11,09,07,05,03,02,01,01,00,00,00,00,01,01,02,03,04,06 
+DS_SineWave:        wave    08,10,12,13,14,14,15,15,15,15,14,14,13,12,11,09,07,05,03,02,01,01,00,00,00,00,01,01,02,03,04,06
+DS_SquareWave:      wave    15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
+DS_SawtoothWave:    wave    00,00,01,01,02,02,03,03,04,04,05,05,06,06,07,07,08,08,09,09,10,10,11,11,12,12,13,13,14,14,15,15
 
 DS_FreqTable:
 ;            C-x   C#x   D-x   D#x   E-x   F-x   F#x   G-x   G#x   A-x   A#x   B-x
@@ -578,11 +623,11 @@ DS_TestVolumeSeq:   dw  .left,.right
 .right  db  15,15,15,14,14,14,13,13,13,12,12,11,11,11,10,10,9,8,7,6,6,7,8,9,9,10,9,8,7,7,6,7,7,7,8,8,8,7,6,6,5,5,5,5,5,5,6,6,6,5,4,4,3,3,3,3,3,3,3,2,2,1,0,seq_end
 
 DS_TestWaveSeq:
-    db  0,seq_end
+    db  0,0,0,0,1,1,1,1,2,2,2,2,seq_loop,12
 
 DS_TestArpSeq:
-    db  12,1,0,seq_end
-
+    db  0,12,12,0,seq_end
+    
 DS_TestSequence:
     sound_instrument  DS_TestInstrument
     note    C_4,4
