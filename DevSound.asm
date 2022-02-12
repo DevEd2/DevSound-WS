@@ -545,7 +545,10 @@ DS_UpdateRegisters_CH1:
 .continue4:
     mov     [es:DS_CH1WavePos],cx
     
-    ; set note frequency
+    ; Read transpose value.
+    ; A transpose value of 0-63 will be added to current note
+    ; A transpose value of 64-127 will be subtracted by 64 then subtracted from the current note
+    ; A transpose value of 128-255 will be subtracted by 128 and then used instead of the current note
     mov     al,[es:DS_CH1Transpose]
     cmp     al,0x40
     jb      .transposeup
@@ -572,13 +575,14 @@ DS_UpdateRegisters_CH1:
     ; load waveform
     mov     al,[es:DS_CH1Wave]
     mov     ah,0
-    mov     si,[ds:DS_WavePointers]
+    mov     si,DS_WavePointers
     add     si,ax
     add     si,ax
+    mov     si,[ds:si]
     mov     di,DS_WaveBuffer
     mov     cl,8
     rep     movsw
-    
+
     ret
 
 ; ================================================================
@@ -623,7 +627,7 @@ DS_TestVolumeSeq:   dw  .left,.right
 .right  db  15,15,15,14,14,14,13,13,13,12,12,11,11,11,10,10,9,8,7,6,6,7,8,9,9,10,9,8,7,7,6,7,7,7,8,8,8,7,6,6,5,5,5,5,5,5,6,6,6,5,4,4,3,3,3,3,3,3,3,2,2,1,0,seq_end
 
 DS_TestWaveSeq:
-    db  0,0,0,0,1,1,1,1,2,2,2,2,seq_loop,12
+    db  2,seq_loop,1
 
 DS_TestArpSeq:
     db  0,12,12,0,seq_end
