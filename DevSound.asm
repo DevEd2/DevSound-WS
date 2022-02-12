@@ -47,14 +47,20 @@
     db  %2
 %endmacro
 
-seq_end equ 0xFF
+seq_loop    equ 0xFE
+seq_end     equ 0xFF
 
 ; ================================================================
 ; Command definitions
 ; ================================================================
 
-%macro setins 1
+%macro sound_instrument 1
     db  0x80
+    dw  %1
+%endmacro
+
+%macro sound_goto 1
+    db  0x81
     dw  %1
 %endmacro
 
@@ -443,22 +449,40 @@ DS_UpdateRegisters_CH1:
     add     si,ax
 ;    mov     al,[es:si]
     mov     al,[ds:si]
+    cmp     al,seq_end
+    jz      .skip1
     rol     al,4
     mov     bl,al
+    inc     cx
+    mov     [es:DS_CH1VolPosL],cx
+    jmp     .continue1
+.skip1:
+    dec     si
+;    mov     bl,[es:si]
+    mov     bl,[ds:si]
+.continue1:
+    
 ;    mov     si,[es:DS_CH1VolPtrR]
     mov     si,DS_TestVolumeSeq.right
     mov     ax,[es:DS_CH1VolPosR]
+    mov     cx,ax
     add     si,ax
 ;    mov     al,[es:si]
     mov     al,[ds:si]
+    cmp     al,seq_end
+    jz      .skip2
     or      al,bl
-    out     REG_SND_CH1_VOL,al
+    inc     cx
+    mov     [es:DS_CH1VolPosR],cx
+    jmp     .continue2
+.skip2:
+    dec     si
+;    mov     al,[es:si]
+    mov     al,[ds:si]
+    or      al,bl
+.continue2:
     mov     [es:DS_CH1Volume],al
-    mov     ax,cx
-    inc     ax
-    mov     di,DS_CH1VolPosL
-    stosw
-    stosw
+    out     REG_SND_CH1_VOL,al
     ; set transpose (TODO)
     
     ; set waveform (TODO)
@@ -488,6 +512,11 @@ DS_UpdateRegisters_CH1:
     out     dx,ax
     ret
 
+; ================================================================
+
+; INPUT: si = instrument pointer
+DS_LoadInstrument:
+    ret
 
 ; ================================================================
 
@@ -517,8 +546,8 @@ DS_DummySequence:
 DS_TestInstrument:  dw  DS_TestVolumeSeq,DS_TestWaveSeq,DS_TestArpSeq
 
 DS_TestVolumeSeq:   dw  .left,.right
-.left:  db  15,14,13,12,11,11,10,10,9,8,7,8,9,8,7,8,9,8,7,8,9,8,7,7,6,6,5,5,4,4,3,3,2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,seq_end
-.right  db  15,14,13,12,11,10, 9, 8,7,8,9,8,7,8,9,8,7,8,9,8,7,8,7,7,6,6,5,5,4,4,3,3,2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,seq_end
+.left:  db  15,15,15,14,14,14,13,13,13,12,12,11,11,11,10,10,9,8,7,6,6,7,8,9,9,10,9,8,7,7,6,7,7,7,8,8,8,7,6,6,5,5,5,5,5,5,6,6,6,5,4,4,3,3,3,3,3,3,3,2,2,1,0,seq_end
+.right  db  15,15,15,14,14,14,13,13,13,12,12,11,11,11,10,10,9,8,7,6,6,7,8,9,9,10,9,8,7,7,6,7,7,7,8,8,8,7,6,6,5,5,5,5,5,5,6,6,6,5,4,4,3,3,3,3,3,3,3,2,2,1,0,seq_end
 
 DS_TestWaveSeq:
     db  0,seq_end
@@ -527,15 +556,15 @@ DS_TestArpSeq:
     db  0,12,12,0,seq_end
 
 DS_TestSequence:
-    setins  DS_TestInstrument
-    note    C_3,4
-    note    D_3,4
-    note    E_3,4
-    note    F_3,4
-    note    G_3,4
-    note    A_3,4
-    note    B_3,4
-    note    C_4,16
+    sound_instrument  DS_TestInstrument
+    note    C_4,4
+    note    D_4,4
+    note    E_4,4
+    note    F_4,4
+    note    G_4,4
+    note    A_4,4
+    note    B_4,4
+    note    C_5,16
     sound_end
 
 ; ================================================================
