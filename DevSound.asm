@@ -442,6 +442,7 @@ DS_UpdateRegisters:
 
 DS_UpdateRegisters_CH1:
     ; set volume level
+    ; TODO: Looping
 ;    mov     si,[es:DS_CH1VolPtrL]
     mov     si,DS_TestVolumeSeq.left
     mov     ax,[es:DS_CH1VolPosL]
@@ -483,7 +484,34 @@ DS_UpdateRegisters_CH1:
 .continue2:
     mov     [es:DS_CH1Volume],al
     out     REG_SND_CH1_VOL,al
-    ; set transpose (TODO)
+    
+    ; Arpeggio logic
+;    mov si,[es:DS_CH1ArpPts]
+    mov     si,DS_TestArpSeq
+    mov     ax,[es:DS_CH1ArpPos]
+    mov     cx,ax
+    add     si,ax
+;    mov     al,[es:si]
+    mov     al,[ds:si]
+    cmp     al,seq_end
+    jz      .skiparp
+    cmp     al,seq_loop
+    jz      .looparp
+    ; default case: set transpose
+    mov     [es:DS_CH1Transpose],al
+    inc     cx
+    jmp     .continue3
+.skiparp:
+    dec     si
+    mov     al,[ds:si]
+    jmp     .continue3
+.looparp:
+    inc     si
+    mov     al,[ds:si]
+    mov     ah,0
+    sub     cx,ax
+.continue3:
+    mov     [es:DS_CH1ArpPos],cx
     
     ; set waveform (TODO)
     
@@ -553,7 +581,7 @@ DS_TestWaveSeq:
     db  0,seq_end
 
 DS_TestArpSeq:
-    db  0,12,12,0,seq_end
+    db  12,1,0,seq_end
 
 DS_TestSequence:
     sound_instrument  DS_TestInstrument
