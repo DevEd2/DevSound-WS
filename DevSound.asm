@@ -2,26 +2,6 @@
 ; Macros
 ; ================================================================
 
-; TODO: Find a better way to do this
-%macro startmem 1
-%assign MemBase %1
-%endmacro
-
-%macro defbyte 1
-%1: equ MemBase
-%assign MemBase MemBase + 1
-%endmacro
-
-%macro defword 1
-%1 equ MemBase
-%assign MemBase MemBase + 2
-%endmacro
-
-%macro defbytes 2
-%1 equ MemBase
-%assign MemBase MemBase + %2
-%endmacro
-
 %macro wave 32
     db       %1| %2<<4
     db       %3| %4<<4
@@ -165,105 +145,49 @@ B_8 equ 88
 ; ================================================================
 ; RAM defines
 ; ================================================================
-startmem 0
 
-defbytes DS_WaveBuffer,64
+section .bss
 
-defbyte DS_Playing
-defbyte DS_Speed1
-defbyte DS_Speed2
-defbyte DS_GlobalTick
-defbyte DS_TickCount
+DS_WaveBuffer           resb 64
 
-defbyte DS_CH1Playing
-defbyte DS_CH1Mode
-defword DS_CH1Ptr
-defword DS_CH1RetPtr
-defword DS_CH1VolPtrL
-defword DS_CH1VolPtrR
-defword DS_CH1WavePtr
-defword DS_CH1ArpPtr
-defword DS_CH1VolPosL
-defword DS_CH1VolPosR
-defword DS_CH1WavePos
-defword DS_CH1ArpPos
-defbyte DS_CH1Note
-defbyte DS_CH1Transpose
-defbyte DS_CH1Volume
-defbyte DS_CH1Wave
-defbyte DS_CH1LoopCount
-defbyte DS_CH1Tick
-defbyte DS_CH1VibratoParams
-defbyte DS_CH1VibratoPhase
-defbytes DS_Reserved1,2
+DS_Playing              resb 1
+DS_Speed1               resb 1
+DS_Speed2               resb 1
+DS_GlobalTick           resb 1
+DS_TickCount            resb 1
 
-defbyte DS_CH2Playing
-defbyte DS_CH2Mode
-defword DS_CH2Ptr
-defword DS_CH2RetPtr
-defword DS_CH2VolPtrL
-defword DS_CH2VolPtrR
-defword DS_CH2WavePtr
-defword DS_CH2ArpPtr
-defword DS_CH2VolPosL
-defword DS_CH2VolPosR
-defword DS_CH2WavePos
-defword DS_CH2ArpPos
-defbyte DS_CH2Note
-defbyte DS_CH2Transpose
-defbyte DS_CH2Volume
-defbyte DS_CH2Wave
-defbyte DS_CH2LoopCount
-defbyte DS_CH2Tick
-defbyte DS_CH2VibratoParams
-defbyte DS_CH2VibratoPhase
-defbytes DS_Reserved2,2
+%macro ds_channel 1
+DS_CH%1Playing          resb 1
+DS_CH%1Mode             resb 1
+DS_CH%1Ptr              resw 1
+DS_CH%1RetPtr           resw 1
+DS_CH%1VolPtrL          resw 1
+DS_CH%1VolPtrR          resw 1
+DS_CH%1WavePtr          resw 1
+DS_CH%1ArpPtr           resw 1
+DS_CH%1VolPosL          resw 1
+DS_CH%1VolPosR          resw 1
+DS_CH%1WavePos          resw 1
+DS_CH%1ArpPos           resw 1
+DS_CH%1Note             resb 1
+DS_CH%1Transpose        resb 1
+DS_CH%1Volume           resb 1
+DS_CH%1Wave             resb 1
+DS_CH%1LoopCount        resb 1
+DS_CH%1Tick             resb 1
+DS_CH%1VibratoParams    resb 1
+DS_CH%1VibratoPhase     resb 1
+DS_Reserved%1           resb 2
+%endmacro
 
-defbyte DS_CH3Playing
-defbyte DS_CH3Mode
-defword DS_CH3Ptr
-defword DS_CH3RetPtr
-defword DS_CH3VolPtrL
-defword DS_CH3VolPtrR
-defword DS_CH3WavePtr
-defword DS_CH3ArpPtr
-defword DS_CH3VolPosL
-defword DS_CH3VolPosR
-defword DS_CH3WavePos
-defword DS_CH3ArpPos
-defbyte DS_CH3Note
-defbyte DS_CH3Transpose
-defbyte DS_CH3Volume
-defbyte DS_CH3Wave
-defbyte DS_CH3LoopCount
-defbyte DS_CH3Tick
-defbyte DS_CH3VibratoParams
-defbyte DS_CH3VibratoPhase
-defbytes DS_Reserved3,2
-
-defbyte DS_CH4Playing
-defbyte DS_CH4Mode
-defword DS_CH4Ptr
-defword DS_CH4RetPtr
-defword DS_CH4VolPtrL
-defword DS_CH4VolPtrR
-defword DS_CH4WavePtr
-defword DS_CH4ArpPtr
-defword DS_CH4VolPosL
-defword DS_CH4VolPosR
-defword DS_CH4WavePos
-defword DS_CH4ArpPos
-defbyte DS_CH4LoopCount
-defbyte DS_CH4Note
-defbyte DS_CH4Transpose
-defbyte DS_CH4Volume
-defbyte DS_CH4Wave
-defbyte DS_CH4Tick
-defbyte DS_CH4VibratoParams
-defbyte DS_CH4VibratoPhase
-defbytes DS_Reserved4,2
+ds_channel 1
+ds_channel 2
+ds_channel 3
+ds_channel 4
 
 ; ================================================================
+
+section .text
 
 db  "DevSound-WS by DevEd | deved8@gmail.com"
 
@@ -271,10 +195,10 @@ db  "DevSound-WS by DevEd | deved8@gmail.com"
 ; Call this once during your game's init routine.
 DS_Init:
     ; set up segment pointers
-    mov     ax,0xF000
-    mov     ds,ax
-    xor     ax,ax
-    mov     es,ax
+    push    cs
+    pop     ds
+    push    0
+    pop     es
     ; enable all sound channels
     mov     al,SndCtrl_EnableCH1|SndCtrl_EnableCH2|SndCtrl_EnableCH3|SndCtrl_EnableCH4
     out     REG_SND_CTRL,al
@@ -325,6 +249,9 @@ DS_Init:
 ; load a song.
 ; INPUT: si = song pointer
 DS_Load:
+    push    ds
+    push    0
+    pop     es
     mov     di,DS_Speed1
     movsb
     movsb
@@ -336,17 +263,20 @@ DS_Load:
     movsw
     mov     di,DS_CH4Ptr
     movsw
+    push    es
+    pop     ds
     mov     al,1
-    mov     [es:DS_Playing],al
-    mov     [es:DS_CH1Playing],al
-    mov     [es:DS_CH2Playing],al
-    mov     [es:DS_CH3Playing],al
-    mov     [es:DS_CH4Playing],al
-    mov     [es:DS_GlobalTick],al
-    mov     [es:DS_CH1Tick],al
-    mov     [es:DS_CH2Tick],al
-    mov     [es:DS_CH3Tick],al
-    mov     [es:DS_CH4Tick],al
+    mov     [DS_Playing],al
+    mov     [DS_CH1Playing],al
+    mov     [DS_CH2Playing],al
+    mov     [DS_CH3Playing],al
+    mov     [DS_CH4Playing],al
+    mov     [DS_GlobalTick],al
+    mov     [DS_CH1Tick],al
+    mov     [DS_CH2Tick],al
+    mov     [DS_CH3Tick],al
+    mov     [DS_CH4Tick],al
+    pop     ds
     ret
  
 ; ================================================================
@@ -354,32 +284,36 @@ DS_Load:
 ; Call this once per frame.
 DS_Update:
     pusha
-    mov     al,[es:DS_Playing]
-    dec     al
-    jnz     .skip
+    push    0
+    pop     ds
+    push    0
+    pop     es
+    test    byte[DS_Playing],1
+    jz      .skip
     
-    mov     al,[es:DS_GlobalTick]
-    dec     al
-    mov     [es:DS_GlobalTick],al
-    jne     .done
-    mov     al,[es:DS_TickCount]
-    inc     al
-    mov     [es:DS_TickCount],al
+    dec     byte[DS_GlobalTick]
+    jnz     .done
+    inc     byte[DS_TickCount]
+    mov     al,[DS_TickCount]
     ror     al,1
     jnc     .eventick
 .oddtick:
-    mov     al,[es:DS_Speed1]
+    mov     al,[DS_Speed1]
     jmp     .settick
 .eventick:
-    mov     al,[es:DS_Speed2]
+    mov     al,[DS_Speed2]
 .settick:
-    mov     [es:DS_GlobalTick],al
+    mov     [DS_GlobalTick],al
+    
     ; TODO: sequence reading + parsing
 
     call    DS_UpdateCH1
 ;    call    DS_UpdateCH2
 ;    call    DS_UpdateCH3
 ;    call    DS_UpdateCH4    
+
+    push    0
+    pop     ds
 .done:  
     call    DS_UpdateRegisters
 .skip:
@@ -389,53 +323,48 @@ DS_Update:
 ; ================================================================
 
 DS_UpdateCH1:
-    mov     al,[es:DS_CH1Playing]
-    dec     al
-    jz      .doupdate
+    test    byte[DS_CH1Playing],1
+    jnz     .doupdate
     ret
 .doupdate:
-    mov     al,[es:DS_CH1Tick]
-    dec     al
+    dec     byte[DS_CH1Tick]
     jz      .doupdate2
-    mov     [es:DS_CH1Tick],al
     ret
     
 .doupdate2:
-    mov     si,[es:DS_CH1Ptr]
+    mov     si,[DS_CH1Ptr]
 .parseloop:
-    lodsb
-    cmp     al,0x80
-    jnc     .iscommand
+    cs lodsb
     cmp     al,0x7f
-    jz      .isrest
+    ja      .iscommand
+    je      .isrest
 .isnote:
-    mov     [es:DS_CH1Note],al
-    lodsb
-    mov     [es:DS_CH1Tick],al
+    mov     [DS_CH1Note],al
+    cs lodsb
+    mov     [DS_CH1Tick],al
     xor     ax,ax
     mov     di,DS_CH1VolPosL
     mov     cx,4
     rep     stosw
     jmp     .done
 .isrest:
-    mov     [es:DS_CH1Note],al
+    mov     [DS_CH1Note],al
     lodsb
-    mov     [es:DS_CH1Tick],al
+    mov     [DS_CH1Tick],al
     xor     al,al
-    mov     [es:DS_CH1Volume],al
+    mov     [DS_CH1Volume],al
     jmp     .done
 .iscommand:
     cmp     al,0xff
-    jz      .endchannel
+    je      .endchannel
     ; TODO: Parse commands
     cmp     al,0x80
-    jnz     .parseloop
-    inc     si
-    inc     si
+    jne     .parseloop
+    add     si,2
     
     jmp     .parseloop
 .done:
-    mov     [es:DS_CH1Ptr],si
+    mov     [DS_CH1Ptr],si
     ret
 .endchannel:
     ret
@@ -447,141 +376,136 @@ DS_UpdateRegisters:
 DS_UpdateRegisters_CH1:
     ; set volume level
     ; TODO: Looping
-;    mov     si,[es:DS_CH1VolPtrL]
+;    mov     si,[DS_CH1VolPtrL]
     mov     si,DS_TestVolumeSeq.left
-    mov     ax,[es:DS_CH1VolPosL]
+    mov     ax,[DS_CH1VolPosL]
     mov     cx,ax
     add     si,ax
-;    mov     al,[es:si]
-    mov     al,[ds:si]
+;    mov     al,[si]
+    mov     al,[cs:si]
     cmp     al,seq_end
-    jz      .skip1
+    je      .skip1
     rol     al,4
     mov     bl,al
     inc     cx
-    mov     [es:DS_CH1VolPosL],cx
+    mov     [DS_CH1VolPosL],cx
     jmp     .continue1
 .skip1:
     dec     si
-;    mov     bl,[es:si]
-    mov     bl,[ds:si]
+;    mov     bl,[si]
+    mov     bl,[cs:si]
 .continue1:
     
-;    mov     si,[es:DS_CH1VolPtrR]
+;    mov     si,[DS_CH1VolPtrR]
     mov     si,DS_TestVolumeSeq.right
-    mov     ax,[es:DS_CH1VolPosR]
+    mov     ax,[DS_CH1VolPosR]
     mov     cx,ax
     add     si,ax
-;    mov     al,[es:si]
-    mov     al,[ds:si]
+;    mov     al,[si]
+    mov     al,[cs:si]
     cmp     al,seq_end
-    jz      .skip2
+    je      .skip2
     or      al,bl
     inc     cx
-    mov     [es:DS_CH1VolPosR],cx
+    mov     [DS_CH1VolPosR],cx
     jmp     .continue2
 .skip2:
     dec     si
-;    mov     al,[es:si]
-    mov     al,[ds:si]
+;    mov     al,[si]
+    mov     al,[cs:si]
     or      al,bl
 .continue2:
-    mov     [es:DS_CH1Volume],al
+    mov     [DS_CH1Volume],al
     out     REG_SND_CH1_VOL,al
     
     ; Arpeggio logic
-;    mov si,[es:DS_CH1ArpPts]
+;    mov si,[DS_CH1ArpPts]
     mov     si,DS_TestArpSeq
-    mov     ax,[es:DS_CH1ArpPos]
+    mov     ax,[DS_CH1ArpPos]
     mov     cx,ax
     add     si,ax
-;    mov     al,[es:si]
-    mov     al,[ds:si]
+;    mov     al,[si]
+    mov     al,[cs:si]
     cmp     al,seq_end
-    jz      .skiparp
+    je      .skiparp
     cmp     al,seq_loop
-    jz      .looparp
+    je      .looparp
     ; default case: set transpose
-    mov     [es:DS_CH1Transpose],al
+    mov     [DS_CH1Transpose],al
     inc     cx
     jmp     .continue3
 .skiparp:
     dec     si
-    mov     al,[ds:si]
+    mov     al,[cs:si]
     jmp     .continue3
 .looparp:
     inc     si
-    mov     al,[ds:si]
+    mov     al,[cs:si]
     mov     ah,0
     sub     cx,ax
 .continue3:
-    mov     [es:DS_CH1ArpPos],cx
+    mov     [DS_CH1ArpPos],cx
 
     ; Wavetable logic
-;    mov si,[es:DS_CH1WavePtr]
+;    mov si,[DS_CH1WavePtr]
     mov     si,DS_TestWaveSeq
-    mov     ax,[es:DS_CH1WavePos]
+    mov     ax,[DS_CH1WavePos]
     mov     cx,ax
     add     si,ax
-;    mov     al,[es:si]
-    mov     al,[ds:si]
+;    mov     al,[si]
+    mov     al,[cs:si]
     cmp     al,seq_end
-    jz      .skipwave
+    je      .skipwave
     cmp     al,seq_loop
-    jz      .loopwave
+    je      .loopwave
     ; default case: set wave
-    mov     [es:DS_CH1Wave],al
+    mov     [DS_CH1Wave],al
     inc     cx
     jmp     .continue4
 .skipwave:
     dec     si
-    mov     al,[ds:si]
+    mov     al,[cs:si]
     jmp     .continue3
 .loopwave:
     inc     si
-    mov     al,[ds:si]
+    mov     al,[cs:si]
     mov     ah,0
     sub     cx,ax
 .continue4:
-    mov     [es:DS_CH1WavePos],cx
+    mov     [DS_CH1WavePos],cx
     
     ; Read transpose value.
     ; A transpose value of 0-63 will be added to current note
     ; A transpose value of 64-127 will be subtracted by 64 then subtracted from the current note
     ; A transpose value of 128-255 will be subtracted by 128 and then used instead of the current note
-    mov     al,[es:DS_CH1Transpose]
-    cmp     al,0x40
+    mov     bl,[DS_CH1Transpose]
+    cmp     bl,0x40
     jb      .transposeup
-    cmp     al,0x7F
-    ja      .setfreq
+    cmp     bl,0x80
+    jae     .setfreq
 .transposeup:
-    mov     bl,al
-    mov     al,[es:DS_CH1Note]
-    add     al,bl
+    add     bl,[DS_CH1Note]
     jmp     .setfreq
 .transposedown:
-    sub     al,0x40
-    mov     bl,al
-    mov     al,[es:DS_CH1Note]
-    sub     al,bl
+    sub     bl,0x40
+    neg     bl
+    add     bl,[DS_CH1Note]
 .setfreq:
-    mov     si,DS_FreqTable
-    add     si,ax
-    add     si,ax
-    mov     ax,[cs:si]
-    mov     dx,REG_SND_CH1_PITCH
-    out     dx,ax
+    mov     bh,0
+    add     bx,bx
+    add     bx,DS_FreqTable
+    mov     ax,[cs:bx]
+    out     REG_SND_CH1_PITCH,ax
     
     ; load waveform
-    mov     al,[es:DS_CH1Wave]
-    mov     ah,0
-    mov     si,DS_WavePointers
-    add     si,ax
-    add     si,ax
-    mov     si,[ds:si]
+    mov     bl,[DS_CH1Wave]
+    mov     bh,0
+    add     bx,bx
+    add     bx,DS_WavePointers
+    mov     si,[cs:bx]
     mov     di,DS_WaveBuffer
     mov     cl,8
-    rep     movsw
+    rep     cs movsw
 
     ret
 
