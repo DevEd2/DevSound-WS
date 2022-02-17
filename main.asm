@@ -19,7 +19,7 @@
 
 section .bss  start=0
 section .data vfollows=.text
-section .text start=0 vstart=0x0f0000
+section .text start=0 vstart=0x0F0000
 
 ProgramStart:
     cli
@@ -84,12 +84,10 @@ WaitLine:
 
 %include "DevSound.asm"
     
-section .footer start=0xfff0 vstart=0x0ffff0
+section .footer start=0xFFF0 vstart=0x0FFFF0
 
 CartridgeFooter:
-    db      0xEA                ; opcode for jmp
-    dw      ProgramStart        ; entry point
-    dw      0xF000              ; ???
+    jmp     0xF000:ProgramStart
     db      0                   ; reserved
     db      0                   ; developer ID
     db      0                   ; color support
