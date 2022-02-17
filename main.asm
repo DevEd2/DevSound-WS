@@ -17,7 +17,9 @@
 
 ; ================================
 
-section .code start=0
+section .bss  start=0
+section .data vfollows=.text
+section .text start=0 vstart=0x0f0000
 
 ProgramStart:
     cli
@@ -82,7 +84,7 @@ WaitLine:
 
 %include "DevSound.asm"
     
-section .footer start=0xfff0
+section .footer start=0xfff0 vstart=0x0ffff0
 
 CartridgeFooter:
     db      0xEA                ; opcode for jmp

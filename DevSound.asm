@@ -2,26 +2,6 @@
 ; Macros
 ; ================================================================
 
-; TODO: Find a better way to do this
-%macro startmem 1
-%assign MemBase %1
-%endmacro
-
-%macro defbyte 1
-%1: equ MemBase
-%assign MemBase MemBase + 1
-%endmacro
-
-%macro defword 1
-%1 equ MemBase
-%assign MemBase MemBase + 2
-%endmacro
-
-%macro defbytes 2
-%1 equ MemBase
-%assign MemBase MemBase + %2
-%endmacro
-
 %macro wave 32
     db       %1| %2<<4
     db       %3| %4<<4
@@ -165,105 +145,49 @@ B_8 equ 88
 ; ================================================================
 ; RAM defines
 ; ================================================================
-startmem 0
 
-defbytes DS_WaveBuffer,64
+section .bss align=16
 
-defbyte DS_Playing
-defbyte DS_Speed1
-defbyte DS_Speed2
-defbyte DS_GlobalTick
-defbyte DS_TickCount
+DS_WaveBuffer           resb 64
 
-defbyte DS_CH1Playing
-defbyte DS_CH1Mode
-defword DS_CH1Ptr
-defword DS_CH1RetPtr
-defword DS_CH1VolPtrL
-defword DS_CH1VolPtrR
-defword DS_CH1WavePtr
-defword DS_CH1ArpPtr
-defword DS_CH1VolPosL
-defword DS_CH1VolPosR
-defword DS_CH1WavePos
-defword DS_CH1ArpPos
-defbyte DS_CH1Note
-defbyte DS_CH1Transpose
-defbyte DS_CH1Volume
-defbyte DS_CH1Wave
-defbyte DS_CH1LoopCount
-defbyte DS_CH1Tick
-defbyte DS_CH1VibratoParams
-defbyte DS_CH1VibratoPhase
-defbytes DS_Reserved1,2
+DS_Playing              resb 1
+DS_Speed1               resb 1
+DS_Speed2               resb 1
+DS_GlobalTick           resb 1
+DS_TickCount            resb 1
 
-defbyte DS_CH2Playing
-defbyte DS_CH2Mode
-defword DS_CH2Ptr
-defword DS_CH2RetPtr
-defword DS_CH2VolPtrL
-defword DS_CH2VolPtrR
-defword DS_CH2WavePtr
-defword DS_CH2ArpPtr
-defword DS_CH2VolPosL
-defword DS_CH2VolPosR
-defword DS_CH2WavePos
-defword DS_CH2ArpPos
-defbyte DS_CH2Note
-defbyte DS_CH2Transpose
-defbyte DS_CH2Volume
-defbyte DS_CH2Wave
-defbyte DS_CH2LoopCount
-defbyte DS_CH2Tick
-defbyte DS_CH2VibratoParams
-defbyte DS_CH2VibratoPhase
-defbytes DS_Reserved2,2
+%macro ds_channel 1
+DS_CH%1Playing          resb 1
+DS_CH%1Mode             resb 1
+DS_CH%1Ptr              resw 1
+DS_CH%1RetPtr           resw 1
+DS_CH%1VolPtrL          resw 1
+DS_CH%1VolPtrR          resw 1
+DS_CH%1WavePtr          resw 1
+DS_CH%1ArpPtr           resw 1
+DS_CH%1VolPosL          resw 1
+DS_CH%1VolPosR          resw 1
+DS_CH%1WavePos          resw 1
+DS_CH%1ArpPos           resw 1
+DS_CH%1Note             resb 1
+DS_CH%1Transpose        resb 1
+DS_CH%1Volume           resb 1
+DS_CH%1Wave             resb 1
+DS_CH%1LoopCount        resb 1
+DS_CH%1Tick             resb 1
+DS_CH%1VibratoParams    resb 1
+DS_CH%1VibratoPhase     resb 1
+DS_Reserved%1           resb 2
+%endmacro
 
-defbyte DS_CH3Playing
-defbyte DS_CH3Mode
-defword DS_CH3Ptr
-defword DS_CH3RetPtr
-defword DS_CH3VolPtrL
-defword DS_CH3VolPtrR
-defword DS_CH3WavePtr
-defword DS_CH3ArpPtr
-defword DS_CH3VolPosL
-defword DS_CH3VolPosR
-defword DS_CH3WavePos
-defword DS_CH3ArpPos
-defbyte DS_CH3Note
-defbyte DS_CH3Transpose
-defbyte DS_CH3Volume
-defbyte DS_CH3Wave
-defbyte DS_CH3LoopCount
-defbyte DS_CH3Tick
-defbyte DS_CH3VibratoParams
-defbyte DS_CH3VibratoPhase
-defbytes DS_Reserved3,2
-
-defbyte DS_CH4Playing
-defbyte DS_CH4Mode
-defword DS_CH4Ptr
-defword DS_CH4RetPtr
-defword DS_CH4VolPtrL
-defword DS_CH4VolPtrR
-defword DS_CH4WavePtr
-defword DS_CH4ArpPtr
-defword DS_CH4VolPosL
-defword DS_CH4VolPosR
-defword DS_CH4WavePos
-defword DS_CH4ArpPos
-defbyte DS_CH4LoopCount
-defbyte DS_CH4Note
-defbyte DS_CH4Transpose
-defbyte DS_CH4Volume
-defbyte DS_CH4Wave
-defbyte DS_CH4Tick
-defbyte DS_CH4VibratoParams
-defbyte DS_CH4VibratoPhase
-defbytes DS_Reserved4,2
+ds_channel 1
+ds_channel 2
+ds_channel 3
+ds_channel 4
 
 ; ================================================================
+
+section .text align=16
 
 db  "DevSound-WS by DevEd | deved8@gmail.com"
 
