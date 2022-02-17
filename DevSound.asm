@@ -305,9 +305,6 @@ DS_Update:
 .settick:
     mov     [DS_GlobalTick],al
     
-    push    cs
-    pop     ds
-    
     ; TODO: sequence reading + parsing
 
     call    DS_UpdateCH1
@@ -326,36 +323,36 @@ DS_Update:
 ; ================================================================
 
 DS_UpdateCH1:
-    test    byte[es:DS_CH1Playing],1
+    test    byte[DS_CH1Playing],1
     jnz     .doupdate
     ret
 .doupdate:
-    dec     byte[es:DS_CH1Tick]
+    dec     byte[DS_CH1Tick]
     jz      .doupdate2
     ret
     
 .doupdate2:
-    mov     si,[es:DS_CH1Ptr]
+    mov     si,[DS_CH1Ptr]
 .parseloop:
-    lodsb
+    cs lodsb
     cmp     al,0x7f
     ja      .iscommand
     je      .isrest
 .isnote:
-    mov     [es:DS_CH1Note],al
-    lodsb
-    mov     [es:DS_CH1Tick],al
+    mov     [DS_CH1Note],al
+    cs lodsb
+    mov     [DS_CH1Tick],al
     xor     ax,ax
     mov     di,DS_CH1VolPosL
     mov     cx,4
     rep     stosw
     jmp     .done
 .isrest:
-    mov     [es:DS_CH1Note],al
+    mov     [DS_CH1Note],al
     lodsb
-    mov     [es:DS_CH1Tick],al
+    mov     [DS_CH1Tick],al
     xor     al,al
-    mov     [es:DS_CH1Volume],al
+    mov     [DS_CH1Volume],al
     jmp     .done
 .iscommand:
     cmp     al,0xff
@@ -367,7 +364,7 @@ DS_UpdateCH1:
     
     jmp     .parseloop
 .done:
-    mov     [es:DS_CH1Ptr],si
+    mov     [DS_CH1Ptr],si
     ret
 .endchannel:
     ret
@@ -505,12 +502,10 @@ DS_UpdateRegisters_CH1:
     mov     bh,0
     add     bx,bx
     add     bx,DS_WavePointers
-    push    cs
-    pop     ds
-    mov     si,[bx]
+    mov     si,[cs:bx]
     mov     di,DS_WaveBuffer
     mov     cl,8
-    rep     movsw
+    rep     cs movsw
 
     ret
 
