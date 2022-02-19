@@ -364,7 +364,7 @@ DS_UpdateCH1:
     cs      lodsw
     push    si
     mov     si,ax
-    xor     al,al
+    xor     ax,ax
     call    DS_LoadInstrument
     pop     si
 .checknext:
@@ -510,8 +510,7 @@ DS_UpdateRegisters_CH1:
 
 ; INPUT: si = instrument pointer, al = channel ID
 DS_LoadInstrument:
-    mov     bl,32
-    mul     bl
+    imul    ax,32
     mov     di,DS_CH1VolPtrL
     add     di,ax
     mov     cl,4
