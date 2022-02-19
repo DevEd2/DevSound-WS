@@ -334,13 +334,13 @@ DS_UpdateCH1:
 .doupdate2:
     mov     si,[DS_CH1Ptr]
 .parseloop:
-    cs lodsb
+    cs      lodsb
     cmp     al,0x7f
     ja      .iscommand
     je      .isrest
 .isnote:
     mov     [DS_CH1Note],al
-    cs lodsb
+    cs      lodsb
     mov     [DS_CH1Tick],al
     xor     ax,ax
     mov     di,DS_CH1VolPosL
@@ -358,9 +358,16 @@ DS_UpdateCH1:
     cmp     al,0xff
     je      .endchannel
     ; TODO: Parse commands
+.checkinstrument:
     cmp     al,0x80
-    jne     .parseloop
-    add     si,2
+    jne     .checknext
+    cs      lodsw
+    push    si
+    mov     si,ax
+    xor     al,al
+    call    DS_LoadInstrument
+    pop     si
+.checknext:
     
     jmp     .parseloop
 .done:
@@ -376,12 +383,10 @@ DS_UpdateRegisters:
 DS_UpdateRegisters_CH1:
     ; set volume level
     ; TODO: Looping
-;    mov     si,[DS_CH1VolPtrL]
-    mov     si,DS_TestVolumeSeq.left
+    mov     si,[DS_CH1VolPtrL]
     mov     ax,[DS_CH1VolPosL]
     mov     cx,ax
     add     si,ax
-;    mov     al,[si]
     mov     al,[cs:si]
     cmp     al,seq_end
     je      .skip1
@@ -392,16 +397,13 @@ DS_UpdateRegisters_CH1:
     jmp     .continue1
 .skip1:
     dec     si
-;    mov     bl,[si]
-    mov     bl,[cs:si]
+    mov     bl,[si]
 .continue1:
     
-;    mov     si,[DS_CH1VolPtrR]
-    mov     si,DS_TestVolumeSeq.right
+    mov     si,[DS_CH1VolPtrR]
     mov     ax,[DS_CH1VolPosR]
     mov     cx,ax
     add     si,ax
-;    mov     al,[si]
     mov     al,[cs:si]
     cmp     al,seq_end
     je      .skip2
@@ -411,7 +413,6 @@ DS_UpdateRegisters_CH1:
     jmp     .continue2
 .skip2:
     dec     si
-;    mov     al,[si]
     mov     al,[cs:si]
     or      al,bl
 .continue2:
@@ -419,12 +420,10 @@ DS_UpdateRegisters_CH1:
     out     REG_SND_CH1_VOL,al
     
     ; Arpeggio logic
-;    mov si,[DS_CH1ArpPts]
-    mov     si,DS_TestArpSeq
+    mov     si,[DS_CH1ArpPtr]
     mov     ax,[DS_CH1ArpPos]
     mov     cx,ax
     add     si,ax
-;    mov     al,[si]
     mov     al,[cs:si]
     cmp     al,seq_end
     je      .skiparp
@@ -447,12 +446,10 @@ DS_UpdateRegisters_CH1:
     mov     [DS_CH1ArpPos],cx
 
     ; Wavetable logic
-;    mov si,[DS_CH1WavePtr]
-    mov     si,DS_TestWaveSeq
+    mov     si,[DS_CH1WavePtr]
     mov     ax,[DS_CH1WavePos]
     mov     cx,ax
     add     si,ax
-;    mov     al,[si]
     mov     al,[cs:si]
     cmp     al,seq_end
     je      .skipwave
@@ -511,8 +508,14 @@ DS_UpdateRegisters_CH1:
 
 ; ================================================================
 
-; INPUT: si = instrument pointer
+; INPUT: si = instrument pointer, al = channel ID
 DS_LoadInstrument:
+    mov     bl,32
+    mul     bl
+    mov     di,DS_CH1VolPtrL
+    add     di,ax
+    mov     cl,4
+    rep     cs movsw
     ret
 
 ; ================================================================
@@ -541,14 +544,17 @@ DS_FreqTable:
 
 ; ================================================================
 
+ins_Test:   dw      DS_TestVolumeSeqL,DS_TestVolumeSeqR,DS_TestWaveSeq,DS_TestArpSeq
+
+; ================================================================
+
 DS_DummySequence:
     sound_end
 
-DS_TestInstrument:  dw  DS_TestVolumeSeq,DS_TestWaveSeq,DS_TestArpSeq
-
-DS_TestVolumeSeq:   dw  .left,.right
-.left:  db  15,15,15,14,14,14,13,13,13,12,12,11,11,11,10,10,9,8,7,6,6,7,8,9,9,10,9,8,7,7,6,7,7,7,8,8,8,7,6,6,5,5,5,5,5,5,6,6,6,5,4,4,3,3,3,3,3,3,3,2,2,1,0,seq_end
-.right  db  15,15,15,14,14,14,13,13,13,12,12,11,11,11,10,10,9,8,7,6,6,7,8,9,9,10,9,8,7,7,6,7,7,7,8,8,8,7,6,6,5,5,5,5,5,5,6,6,6,5,4,4,3,3,3,3,3,3,3,2,2,1,0,seq_end
+DS_TestVolumeSeqL:
+    db  15,15,15,14,14,14,13,13,13,12,12,11,11,11,10,10,9,8,7,6,6,7,8,9,9,10,9,8,7,7,6,7,7,7,8,8,8,7,6,6,5,5,5,5,5,5,6,6,6,5,4,4,3,3,3,3,3,3,3,2,2,1,0,seq_end
+DS_TestVolumeSeqR:
+    db  15,15,15,14,14,14,13,13,13,12,12,11,11,11,10,10,9,8,7,6,6,7,8,9,9,10,9,8,7,7,6,7,7,7,8,8,8,7,6,6,5,5,5,5,5,5,6,6,6,5,4,4,3,3,3,3,3,3,3,2,2,1,0,seq_end
 
 DS_TestWaveSeq:
     db  2,seq_loop,1
@@ -557,7 +563,7 @@ DS_TestArpSeq:
     db  0,12,12,0,seq_end
     
 DS_TestSequence:
-    sound_instrument  DS_TestInstrument
+    sound_instrument  ins_Test
     note    C_4,4
     note    D_4,4
     note    E_4,4
