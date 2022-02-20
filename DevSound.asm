@@ -44,6 +44,35 @@ seq_end     equ 0xFF
     dw  %1
 %endmacro
 
+%macro sound_loopcount 1
+    db  0x82
+    dw  %1
+%endmacro
+
+%macro sound_loop 1
+    db  0x83
+    dw  %1
+%endmacro
+
+%macro sound_call 1
+    db  0x84
+    dw  %1
+%endmacro
+
+%macro sound_ret 0
+    db  0x85
+%endmacro
+
+%macro sound_togglemode 0
+    db  0x86
+%endmacro
+
+%macro sound_vibrato 2
+    db  0x87
+    db  %1
+    db  %2
+%endmacro
+
 %macro sound_end 0
     db  0xFF
 %endmacro
@@ -357,16 +386,17 @@ DS_UpdateCH1:
 .iscommand:
     cmp     al,0xff
     je      .endchannel
-    ; TODO: Parse commands
-.checkinstrument:
-    cmp     al,0x80
-    jne     .checknext
-    cs      lodsw
+.runcommand:
+    sub     al,0x80
+    xor     ah,ah
     push    si
-    mov     si,ax
-    xor     ax,ax
-    call    DS_LoadInstrument
+    mov     si,DS_CH1CommandTable
+    add     si,ax
+    add     si,ax
+    cs      lodsw
     pop     si
+    push    ax
+    ret
 .checknext:
     
     jmp     .parseloop
@@ -375,6 +405,63 @@ DS_UpdateCH1:
     ret
 .endchannel:
     ret
+
+; ================================================================
+
+DS_CH1CommandTable:
+    dw      .setinstrument
+    dw      .goto
+    dw      .loopcount
+    dw      .loop
+    dw      .call
+    dw      .ret
+    dw      .togglemode
+    dw      .vibrato
+
+.setinstrument:
+    cs      lodsw
+    push    si
+    mov     si,ax
+    xor     ax,ax
+    call    DS_LoadInstrument
+    pop     si
+    jmp     DS_UpdateCH1.parseloop
+
+.goto:
+    cs      lodsw
+    mov     si,ax
+    jmp     DS_UpdateCH1.parseloop
+
+.loopcount:
+    cs      lodsb
+    mov     [DS_CH1LoopCount],al
+    jmp     DS_UpdateCH1.parseloop
+
+.loop:
+    cs      lodsw
+    ; TODO
+    jmp     DS_UpdateCH1.parseloop
+
+.call:
+    cs      lodsw
+    mov     [DS_CH1RetPtr],si
+    mov     si,ax
+    jmp     DS_UpdateCH1.parseloop
+    
+.ret:
+    mov     si,[DS_CH1RetPtr]
+    jmp     DS_UpdateCH1.parseloop
+    
+.togglemode:
+    mov     al,[DS_CH1Mode]
+    xor     al,1
+    mov     [DS_CH1Mode],al
+    jmp     DS_UpdateCH1.parseloop
+
+.vibrato:
+    ; TODO
+.dummy:
+    jmp     DS_UpdateCH1.parseloop
 
 ; ================================================================
 
@@ -567,10 +654,29 @@ DS_TestSequence:
     note    D_4,4
     note    E_4,4
     note    F_4,4
+    sound_call .block1
     note    G_4,4
     note    A_4,4
     note    B_4,4
     note    C_5,16
+    sound_goto .block2
+    sound_end
+
+.block1:
+    note    C_5,2
+    note    D_5,2
+    note    E_5,2
+    note    F_5,2
+    note    G_5,2
+    note    F_5,2
+    note    E_5,2
+    note    D_5,2
+    sound_ret
+    
+.block2:
+    note    C_2,8
+    note    E_2,8
+    note    G_2,8
     sound_end
 
 ; ================================================================
