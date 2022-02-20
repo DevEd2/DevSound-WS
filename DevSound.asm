@@ -46,7 +46,7 @@ seq_end     equ 0xFF
 
 %macro sound_loopcount 1
     db  0x82
-    db  %1-1
+    db  %1
 %endmacro
 
 %macro sound_loop 1
@@ -404,7 +404,7 @@ DS_UpdateCH1:
     mov     [DS_CH1Ptr],si
     ret
 .endchannel:
-    mov     byte [DS_CH1Playing],0
+    mov     byte[DS_CH1Playing],0
     ret
 
 ; ================================================================
@@ -441,8 +441,8 @@ DS_CH1CommandTable:
 
 .loop:
     cs      lodsw
-    sub     byte [DS_CH1LoopCount],1
-    jc      DS_UpdateCH1.parseloop
+    dec     byte[DS_CH1LoopCount]
+    jz      DS_UpdateCH1.parseloop
     mov     si,ax
     jmp     DS_UpdateCH1.parseloop
 
