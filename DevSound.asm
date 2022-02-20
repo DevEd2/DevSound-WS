@@ -510,7 +510,7 @@ DS_UpdateRegisters_CH1:
 
 ; INPUT: si = instrument pointer, al = channel ID
 DS_LoadInstrument:
-    imul    ax,32
+    rol     al,5
     mov     di,DS_CH1VolPtrL
     add     di,ax
     mov     cl,4
