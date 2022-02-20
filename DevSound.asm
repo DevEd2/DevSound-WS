@@ -46,7 +46,7 @@ seq_end     equ 0xFF
 
 %macro sound_loopcount 1
     db  0x82
-    dw  %1
+    db  %1-1
 %endmacro
 
 %macro sound_loop 1
@@ -404,6 +404,7 @@ DS_UpdateCH1:
     mov     [DS_CH1Ptr],si
     ret
 .endchannel:
+    mov     byte [DS_CH1Playing],0
     ret
 
 ; ================================================================
@@ -422,8 +423,9 @@ DS_CH1CommandTable:
     cs      lodsw
     push    si
     mov     si,ax
-    xor     ax,ax
-    call    DS_LoadInstrument
+    mov     di,DS_CH1VolPtrL
+    mov     cl,4
+    rep     cs movsw
     pop     si
     jmp     DS_UpdateCH1.parseloop
 
@@ -439,7 +441,9 @@ DS_CH1CommandTable:
 
 .loop:
     cs      lodsw
-    ; TODO
+    sub     byte [DS_CH1LoopCount],1
+    jc      DS_UpdateCH1.parseloop
+    mov     si,ax
     jmp     DS_UpdateCH1.parseloop
 
 .call:
@@ -561,7 +565,7 @@ DS_UpdateRegisters_CH1:
     ; Read transpose value.
     ; A transpose value of 0-63 will be added to current note
     ; A transpose value of 64-127 will be subtracted by 64 then subtracted from the current note
-    ; A transpose value of 128-255 will be subtracted by 128 and then used instead of the current note
+    ; A transpose value of 128-255 will be subtracted by 128 and then be used instead of the current note
     mov     bl,[DS_CH1Transpose]
     cmp     bl,0x40
     jb      .transposeup
@@ -591,17 +595,6 @@ DS_UpdateRegisters_CH1:
     mov     cl,8
     rep     cs movsw
 
-    ret
-
-; ================================================================
-
-; INPUT: si = instrument pointer, al = channel ID
-DS_LoadInstrument:
-    rol     al,5
-    mov     di,DS_CH1VolPtrL
-    add     di,ax
-    mov     cl,4
-    rep     cs movsw
     ret
 
 ; ================================================================
@@ -649,34 +642,42 @@ DS_TestArpSeq:
     db  0,12,12,0,seq_end
     
 DS_TestSequence:
-    sound_instrument  ins_Test
-    note    C_4,4
-    note    D_4,4
-    note    E_4,4
-    note    F_4,4
+    sound_instrument ins_Test
+    note C_4,4
+    note D_4,4
+    note E_4,4
+    note F_4,4
     sound_call .block1
-    note    G_4,4
-    note    A_4,4
-    note    B_4,4
-    note    C_5,16
+    note G_4,4
+    note A_4,4
+    note B_4,4
+    note C_5,16
     sound_goto .block2
     sound_end
 
 .block1:
-    note    C_5,2
-    note    D_5,2
-    note    E_5,2
-    note    F_5,2
-    note    G_5,2
-    note    F_5,2
-    note    E_5,2
-    note    D_5,2
+    note C_5,2
+    note D_5,2
+    note E_5,2
+    note F_5,2
+    note G_5,2
+    note F_5,2
+    note E_5,2
+    note D_5,2
     sound_ret
     
 .block2:
-    note    C_2,8
-    note    E_2,8
-    note    G_2,8
+    note C_2,8
+    note E_2,8
+    note G_2,8
+    
+    sound_loopcount 8
+.loop1:
+    note C_3,3
+    note E_3,3
+    note G_3,3
+    sound_loop .loop1
+    
     sound_end
 
 ; ================================================================
