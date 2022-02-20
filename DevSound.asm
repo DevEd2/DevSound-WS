@@ -81,95 +81,96 @@ seq_end     equ 0xFF
 ; Note definitions
 ; ================================================================
 
-G_1 equ 0
-G#1 equ 1
-A_1 equ 2
-A#1 equ 3
-B_1 equ 4
-C_2 equ 5
-C#2 equ 6
-D_2 equ 7
-D#2 equ 8
-E_2 equ 9
-F_2 equ 10
-F#2 equ 11
-G_2 equ 12
-G#2 equ 13
-A_2 equ 14
-A#2 equ 15
-B_2 equ 16
-C_3 equ 17
-C#3 equ 18
-D_3 equ 19
-D#3 equ 20
-E_3 equ 21
-F_3 equ 22
-F#3 equ 23
-G_3 equ 24
-G#3 equ 25
-A_3 equ 26
-A#3 equ 27
-B_3 equ 28
-C_4 equ 29
-C#4 equ 30
-D_4 equ 31
-D#4 equ 32
-E_4 equ 33
-F_4 equ 34
-F#4 equ 35
-G_4 equ 36
-G#4 equ 37
-A_4 equ 38
-A#4 equ 39
-B_4 equ 40
-C_5 equ 41
-C#5 equ 42
-D_5 equ 43
-D#5 equ 44
-E_5 equ 45
-F_5 equ 46
-F#5 equ 47
-G_5 equ 48
-G#5 equ 49
-A_5 equ 50
-A#5 equ 51
-B_5 equ 52
-C_6 equ 53
-C#6 equ 54
-D_6 equ 55
-D#6 equ 56
-E_6 equ 57
-F_6 equ 58
-F#6 equ 59
-G_6 equ 60
-G#6 equ 61
-A_6 equ 62
-A#6 equ 63
-B_6 equ 64
-C_7 equ 65
-C#7 equ 66
-D_7 equ 67
-D#7 equ 68
-E_7 equ 69
-F_7 equ 70
-F#7 equ 71
-G_7 equ 72
-G#7 equ 73
-A_7 equ 74
-A#7 equ 75
-B_7 equ 76
-C_8 equ 77
-C#8 equ 78
-D_8 equ 79
-D#8 equ 80
-E_8 equ 81
-F_8 equ 82
-F#8 equ 83
-G_8 equ 84
-G#8 equ 85
-A_8 equ 86
-A#8 equ 87
-B_8 equ 88
+nG_1 equ 0
+nG#1 equ 1
+nA_1 equ 2
+nA#1 equ 3
+nB_1 equ 4
+nC_2 equ 5
+nC#2 equ 6
+nD_2 equ 7
+nD#2 equ 8
+nE_2 equ 9
+nF_2 equ 10
+nF#2 equ 11
+nG_2 equ 12
+nG#2 equ 13
+nA_2 equ 14
+nA#2 equ 15
+nB_2 equ 16
+nC_3 equ 17
+nC#3 equ 18
+nD_3 equ 19
+nD#3 equ 20
+nE_3 equ 21
+nF_3 equ 22
+nF#3 equ 23
+nG_3 equ 24
+nG#3 equ 25
+nA_3 equ 26
+nA#3 equ 27
+nB_3 equ 28
+nC_4 equ 29
+nC#4 equ 30
+nD_4 equ 31
+nD#4 equ 32
+nE_4 equ 33
+nF_4 equ 34
+nF#4 equ 35
+nG_4 equ 36
+nG#4 equ 37
+nA_4 equ 38
+nA#4 equ 39
+nB_4 equ 40
+nC_5 equ 41
+nC#5 equ 42
+nD_5 equ 43
+nD#5 equ 44
+nE_5 equ 45
+nF_5 equ 46
+nF#5 equ 47
+nG_5 equ 48
+nG#5 equ 49
+nA_5 equ 50
+nA#5 equ 51
+nB_5 equ 52
+nC_6 equ 53
+nC#6 equ 54
+nD_6 equ 55
+nD#6 equ 56
+nE_6 equ 57
+nF_6 equ 58
+nF#6 equ 59
+nG_6 equ 60
+nG#6 equ 61
+nA_6 equ 62
+nA#6 equ 63
+nB_6 equ 64
+nC_7 equ 65
+nC#7 equ 66
+nD_7 equ 67
+nD#7 equ 68
+nE_7 equ 69
+nF_7 equ 70
+nF#7 equ 71
+nG_7 equ 72
+nG#7 equ 73
+nA_7 equ 74
+nA#7 equ 75
+nB_7 equ 76
+nC_8 equ 77
+nC#8 equ 78
+nD_8 equ 79
+nD#8 equ 80
+nE_8 equ 81
+nF_8 equ 82
+nF#8 equ 83
+nG_8 equ 84
+nG#8 equ 85
+nA_8 equ 86
+nA#8 equ 87
+nB_8 equ 88
+nRest equ 89
 
 ; ================================================================
 ; RAM defines
@@ -337,9 +338,9 @@ DS_Update:
     ; TODO: sequence reading + parsing
 
     call    DS_UpdateCH1
-;    call    DS_UpdateCH2
-;    call    DS_UpdateCH3
-;    call    DS_UpdateCH4    
+    call    DS_UpdateCH2
+    call    DS_UpdateCH3
+    call    DS_UpdateCH4    
 
     push    0
     pop     ds
@@ -351,37 +352,38 @@ DS_Update:
     
 ; ================================================================
 
-DS_UpdateCH1:
-    test    byte[DS_CH1Playing],1
+%macro ds_update_channel 1
+DS_UpdateCH%1:
+    test    byte[DS_CH%1Playing],1
     jnz     .doupdate
     ret
 .doupdate:
-    dec     byte[DS_CH1Tick]
+    dec     byte[DS_CH%1Tick]
     jz      .doupdate2
     ret
     
 .doupdate2:
-    mov     si,[DS_CH1Ptr]
+    mov     si,[DS_CH%1Ptr]
 .parseloop:
     cs      lodsb
     cmp     al,0x7f
     ja      .iscommand
     je      .isrest
 .isnote:
-    mov     [DS_CH1Note],al
+    mov     [DS_CH%1Note],al
     cs      lodsb
-    mov     [DS_CH1Tick],al
+    mov     [DS_CH%1Tick],al
     xor     ax,ax
-    mov     di,DS_CH1VolPosL
+    mov     di,DS_CH%1VolPosL
     mov     cx,4
     rep     stosw
     jmp     .done
 .isrest:
-    mov     [DS_CH1Note],al
+    mov     [DS_CH%1Note],al
     lodsb
-    mov     [DS_CH1Tick],al
+    mov     [DS_CH%1Tick],al
     xor     al,al
-    mov     [DS_CH1Volume],al
+    mov     [DS_CH%1Volume],al
     jmp     .done
 .iscommand:
     cmp     al,0xff
@@ -390,7 +392,7 @@ DS_UpdateCH1:
     sub     al,0x80
     xor     ah,ah
     push    si
-    mov     si,DS_CH1CommandTable
+    mov     si,DS_CH%1CommandTable
     add     si,ax
     add     si,ax
     cs      lodsw
@@ -401,15 +403,15 @@ DS_UpdateCH1:
     
     jmp     .parseloop
 .done:
-    mov     [DS_CH1Ptr],si
+    mov     [DS_CH%1Ptr],si
     ret
 .endchannel:
-    mov     byte[DS_CH1Playing],0
+    mov     byte[DS_CH%1Playing],0
     ret
 
 ; ================================================================
 
-DS_CH1CommandTable:
+DS_CH%1CommandTable:
     dw      .setinstrument
     dw      .goto
     dw      .loopcount
@@ -423,59 +425,70 @@ DS_CH1CommandTable:
     cs      lodsw
     push    si
     mov     si,ax
-    mov     di,DS_CH1VolPtrL
+    mov     di,DS_CH%1VolPtrL
     mov     cl,4
     rep     cs movsw
     pop     si
-    jmp     DS_UpdateCH1.parseloop
+    jmp     DS_UpdateCH%1.parseloop
 
 .goto:
     cs      lodsw
     mov     si,ax
-    jmp     DS_UpdateCH1.parseloop
+    jmp     DS_UpdateCH%1.parseloop
 
 .loopcount:
     cs      lodsb
     mov     [DS_CH1LoopCount],al
-    jmp     DS_UpdateCH1.parseloop
+    jmp     DS_UpdateCH%1.parseloop
 
 .loop:
     cs      lodsw
-    dec     byte[DS_CH1LoopCount]
-    jz      DS_UpdateCH1.parseloop
+    dec     byte[DS_CH%1LoopCount]
+    jz      DS_UpdateCH%1.parseloop
     mov     si,ax
-    jmp     DS_UpdateCH1.parseloop
+    jmp     DS_UpdateCH%1.parseloop
 
 .call:
     cs      lodsw
-    mov     [DS_CH1RetPtr],si
+    mov     [DS_CH%1RetPtr],si
     mov     si,ax
-    jmp     DS_UpdateCH1.parseloop
+    jmp     DS_UpdateCH%1.parseloop
     
 .ret:
-    mov     si,[DS_CH1RetPtr]
-    jmp     DS_UpdateCH1.parseloop
+    mov     si,[DS_CH%1RetPtr]
+    jmp     DS_UpdateCH%1.parseloop
     
 .togglemode:
-    mov     al,[DS_CH1Mode]
+    mov     al,[DS_CH%1Mode]
     xor     al,1
-    mov     [DS_CH1Mode],al
-    jmp     DS_UpdateCH1.parseloop
+    mov     [DS_CH%1Mode],al
+    jmp     DS_UpdateCH%1.parseloop
 
 .vibrato:
     ; TODO
 .dummy:
-    jmp     DS_UpdateCH1.parseloop
+    jmp     DS_UpdateCH%1.parseloop
+%endmacro
+
+ds_update_channel 1
+ds_update_channel 2
+ds_update_channel 3
+ds_update_channel 4
 
 ; ================================================================
 
 DS_UpdateRegisters:
+    call    DS_UpdateRegisters_CH1
+    call    DS_UpdateRegisters_CH2
+    call    DS_UpdateRegisters_CH3
+    jmp     DS_UpdateRegisters_CH4
 
-DS_UpdateRegisters_CH1:
+%macro ds_update_registers 1
+DS_UpdateRegisters_CH%1:
     ; set volume level
     ; TODO: Looping
-    mov     si,[DS_CH1VolPtrL]
-    mov     ax,[DS_CH1VolPosL]
+    mov     si,[DS_CH%1VolPtrL]
+    mov     ax,[DS_CH%1VolPosL]
     mov     cx,ax
     add     si,ax
     mov     al,[cs:si]
@@ -484,15 +497,18 @@ DS_UpdateRegisters_CH1:
     rol     al,4
     mov     bl,al
     inc     cx
-    mov     [DS_CH1VolPosL],cx
+    mov     [DS_CH%1VolPosL],cx
     jmp     .continue1
 .skip1:
+    cmp     cx,0
+    jz      .continue1
     dec     si
-    mov     bl,[si]
+    mov     bl,[cs:si]
+    rol     bl,4
 .continue1:
     
-    mov     si,[DS_CH1VolPtrR]
-    mov     ax,[DS_CH1VolPosR]
+    mov     si,[DS_CH%1VolPtrR]
+    mov     ax,[DS_CH%1VolPosR]
     mov     cx,ax
     add     si,ax
     mov     al,[cs:si]
@@ -500,19 +516,24 @@ DS_UpdateRegisters_CH1:
     je      .skip2
     or      al,bl
     inc     cx
-    mov     [DS_CH1VolPosR],cx
+    mov     [DS_CH%1VolPosR],cx
     jmp     .continue2
 .skip2:
+    cmp     cx,0
+    jz      .volume0
     dec     si
     mov     al,[cs:si]
     or      al,bl
+    jmp     .continue2
+.volume0:
+    xor     al,al
 .continue2:
-    mov     [DS_CH1Volume],al
-    out     REG_SND_CH1_VOL,al
-    
+    mov     [DS_CH%1Volume],al
+    out     REG_SND_CH%1_VOL,al
+.doarp:
     ; Arpeggio logic
-    mov     si,[DS_CH1ArpPtr]
-    mov     ax,[DS_CH1ArpPos]
+    mov     si,[DS_CH%1ArpPtr]
+    mov     ax,[DS_CH%1ArpPos]
     mov     cx,ax
     add     si,ax
     mov     al,[cs:si]
@@ -521,10 +542,12 @@ DS_UpdateRegisters_CH1:
     cmp     al,seq_loop
     je      .looparp
     ; default case: set transpose
-    mov     [DS_CH1Transpose],al
+    mov     [DS_CH%1Transpose],al
     inc     cx
     jmp     .continue3
 .skiparp:
+    cmp     cx,0
+    jz      .continue3
     dec     si
     mov     al,[cs:si]
     jmp     .continue3
@@ -534,11 +557,11 @@ DS_UpdateRegisters_CH1:
     mov     ah,0
     sub     cx,ax
 .continue3:
-    mov     [DS_CH1ArpPos],cx
+    mov     [DS_CH%1ArpPos],cx
 
     ; Wavetable logic
-    mov     si,[DS_CH1WavePtr]
-    mov     ax,[DS_CH1WavePos]
+    mov     si,[DS_CH%1WavePtr]
+    mov     ax,[DS_CH%1WavePos]
     mov     cx,ax
     add     si,ax
     mov     al,[cs:si]
@@ -547,55 +570,72 @@ DS_UpdateRegisters_CH1:
     cmp     al,seq_loop
     je      .loopwave
     ; default case: set wave
-    mov     [DS_CH1Wave],al
+    mov     [DS_CH%1Wave],al
     inc     cx
     jmp     .continue4
 .skipwave:
+    cmp     cx,0
+    jz      .continue4
     dec     si
     mov     al,[cs:si]
-    jmp     .continue3
+    jmp     .continue4
 .loopwave:
     inc     si
     mov     al,[cs:si]
     mov     ah,0
     sub     cx,ax
 .continue4:
-    mov     [DS_CH1WavePos],cx
+    mov     [DS_CH%1WavePos],cx
     
     ; Read transpose value.
     ; A transpose value of 0-63 will be added to current note
     ; A transpose value of 64-127 will be subtracted by 64 then subtracted from the current note
     ; A transpose value of 128-255 will be subtracted by 128 and then be used instead of the current note
-    mov     bl,[DS_CH1Transpose]
+    cmp     byte [DS_CH%1Note],nRest
+    jz      .isrest
+    mov     bl,[DS_CH%1Transpose]
     cmp     bl,0x40
     jb      .transposeup
     cmp     bl,0x80
     jae     .setfreq
 .transposeup:
-    add     bl,[DS_CH1Note]
+    add     bl,[DS_CH%1Note]
     jmp     .setfreq
 .transposedown:
     sub     bl,0x40
     neg     bl
-    add     bl,[DS_CH1Note]
+    add     bl,[DS_CH%1Note]
 .setfreq:
     mov     bh,0
     add     bx,bx
     add     bx,DS_FreqTable
     mov     ax,[cs:bx]
-    out     REG_SND_CH1_PITCH,ax
-    
-    ; load waveform
-    mov     bl,[DS_CH1Wave]
+    out     REG_SND_CH%1_PITCH,ax
+    jmp     .loadwave
+.isrest:
+    xor     al,al
+    out     REG_SND_CH%1_VOL,al
+
+.loadwave:
+    cmp     byte [DS_CH%1Volume],0
+    jz      .skipwave2
+    mov     bl,[DS_CH%1Wave]
     mov     bh,0
     add     bx,bx
     add     bx,DS_WavePointers
     mov     si,[cs:bx]
     mov     di,DS_WaveBuffer
+    add     di,((%1 - 1) << 4)
     mov     cl,8
     rep     cs movsw
-
+.skipwave2:
     ret
+%endmacro
+    
+ds_update_registers 1
+ds_update_registers 2
+ds_update_registers 3
+ds_update_registers 4
 
 ; ================================================================
 
@@ -627,13 +667,14 @@ ins_Test:   dw      DS_TestVolumeSeqL,DS_TestVolumeSeqR,DS_TestWaveSeq,DS_TestAr
 
 ; ================================================================
 
+DS_DummySoundSequence:
+    db  0
 DS_DummySequence:
     sound_end
 
 DS_TestVolumeSeqL:
-    db  15,15,15,14,14,14,13,13,13,12,12,11,11,11,10,10,9,8,7,6,6,7,8,9,9,10,9,8,7,7,6,7,7,7,8,8,8,7,6,6,5,5,5,5,5,5,6,6,6,5,4,4,3,3,3,3,3,3,3,2,2,1,0,seq_end
 DS_TestVolumeSeqR:
-    db  15,15,15,14,14,14,13,13,13,12,12,11,11,11,10,10,9,8,7,6,6,7,8,9,9,10,9,8,7,7,6,7,7,7,8,8,8,7,6,6,5,5,5,5,5,5,6,6,6,5,4,4,3,3,3,3,3,3,3,2,2,1,0,seq_end
+    db  15,15,15,15,15,14,14,14,14,14,14,13,13,13,13,12,12,12,12,12,12,12,12,12,12,12,12,11,seq_end
 
 DS_TestWaveSeq:
     db  2,seq_loop,1
@@ -641,47 +682,37 @@ DS_TestWaveSeq:
 DS_TestArpSeq:
     db  0,12,12,0,seq_end
     
-DS_TestSequence:
+DS_TestSequence1:
     sound_instrument ins_Test
-    note C_4,4
-    note D_4,4
-    note E_4,4
-    note F_4,4
-    sound_call .block1
-    note G_4,4
-    note A_4,4
-    note B_4,4
-    note C_5,16
-    sound_goto .block2
+    note    nC_5,4
+    note    nB_4,4
+    note    nC_5,4
+    note    nRest,1
     sound_end
-
-.block1:
-    note C_5,2
-    note D_5,2
-    note E_5,2
-    note F_5,2
-    note G_5,2
-    note F_5,2
-    note E_5,2
-    note D_5,2
-    sound_ret
-    
-.block2:
-    note C_2,8
-    note E_2,8
-    note G_2,8
-    
-    sound_loopcount 8
-.loop1:
-    note C_3,3
-    note E_3,3
-    note G_3,3
-    sound_loop .loop1
-    
+DS_TestSequence2:
+    sound_instrument ins_Test
+    note    nG_4,4
+    note    nF_4,4
+    note    nE_4,4
+    note    nRest,1
+    sound_end
+DS_TestSequence3:
+    sound_instrument ins_Test
+    note    nC_4,4
+    note    nD_4,4
+    note    nC_4,4
+    note    nRest,1
+    sound_end
+DS_TestSequence4:
+    sound_instrument ins_Test
+    note    nG_3,4
+    note    nF_3,4
+    note    nE_3,4
+    note    nRest,1
     sound_end
 
 ; ================================================================
 
 DS_TestSong:   
-    db  5,5
-    dw  DS_TestSequence,DS_DummySequence,DS_DummySequence,DS_DummySequence
+    db  22,22
+    dw  DS_TestSequence1,DS_TestSequence2,DS_TestSequence3,DS_TestSequence4
