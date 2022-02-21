@@ -166,6 +166,7 @@ Noise_Tap08             equ 4
 Noise_Tap06             equ 5
 Noise_Tap09             equ 6
 Noise_Tap11             equ 7
+Noise_ModeMask          equ 0b00000111
 
 ; REG_SND_CTRL constants
 SndCtrl_CH4_Noise       equ 0b10000000
@@ -178,6 +179,8 @@ SndCtrl_EnableCH4       equ 0b00001000
 SndCtrl_EnableCH3       equ 0b00000100
 SndCtrl_EnableCH2       equ 0b00000010
 SndCtrl_EnableCH1       equ 0b00000001
+SndCtrl_ModeMask        equ 0b11100000
+SndCtrl_EnableMask      equ 0b00001111
 
 ; REG_SND_OUTPUT constants
 SndOut_Headphones       equ 0b10000000

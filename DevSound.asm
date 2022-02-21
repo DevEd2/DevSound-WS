@@ -180,11 +180,6 @@ section .bss
 
 DS_WaveBuffer           resb 64
 
-DS_Playing              resb 1
-DS_Speed1               resb 1
-DS_Speed2               resb 1
-DS_GlobalTick           resb 1
-DS_TickCount            resb 1
 
 %macro ds_channel 1
 DS_CH%1Playing          resb 1
@@ -207,13 +202,20 @@ DS_CH%1LoopCount        resb 1
 DS_CH%1Tick             resb 1
 DS_CH%1VibratoParams    resb 1
 DS_CH%1VibratoPhase     resb 1
-DS_Reserved%1           resb 2
+DS_CH%1FreqOffset       resw 1
 %endmacro
 
 ds_channel 1
 ds_channel 2
 ds_channel 3
 ds_channel 4
+
+DS_Playing              resb 1
+DS_Speed1               resb 1
+DS_Speed2               resb 1
+DS_GlobalTick           resb 1
+DS_TickCount            resb 1
+DS_CH4LastNoise         resb 1
 
 ; ================================================================
 
@@ -306,6 +308,7 @@ DS_Load:
     mov     [DS_CH2Tick],al
     mov     [DS_CH3Tick],al
     mov     [DS_CH4Tick],al
+    mov     byte[DS_CH4LastNoise],0xFF
     pop     ds
     ret
  
@@ -478,6 +481,20 @@ ds_update_channel 4
 ; ================================================================
 
 DS_UpdateRegisters:
+    ; update modes
+    mov     al,[DS_CH4Mode]
+    rol     al,7
+    mov     bl,al
+    mov     al,[DS_CH3Mode]
+    rol     al,6
+    or      bl,al
+    mov     al,[DS_CH2Mode]
+    rol     al,5
+    or      bl,al
+    or      bl,SndCtrl_EnableMask
+    mov     al,bl
+    out     REG_SND_CTRL,al
+    
     call    DS_UpdateRegisters_CH1
     call    DS_UpdateRegisters_CH2
     call    DS_UpdateRegisters_CH3
@@ -560,6 +577,7 @@ DS_UpdateRegisters_CH%1:
     mov     [DS_CH%1ArpPos],cx
 
     ; Wavetable logic
+    
     mov     si,[DS_CH%1WavePtr]
     mov     ax,[DS_CH%1WavePos]
     mov     cx,ax
@@ -586,7 +604,8 @@ DS_UpdateRegisters_CH%1:
     sub     cx,ax
 .continue4:
     mov     [DS_CH%1WavePos],cx
-    
+
+.donewave:
     ; Read transpose value.
     ; A transpose value of 0-63 will be added to current note
     ; A transpose value of 64-127 will be subtracted by 64 then subtracted from the current note
@@ -611,14 +630,33 @@ DS_UpdateRegisters_CH%1:
     add     bx,DS_FreqTable
     mov     ax,[cs:bx]
     out     REG_SND_CH%1_PITCH,ax
-    jmp     .loadwave
+    jmp     .checkwave
 .isrest:
     xor     al,al
     out     REG_SND_CH%1_VOL,al
+.checkwave:
+
+%if %1 == 4
+    test    byte[DS_CH4Mode],1
+    jz      .loadwave
+    
+    cmp     byte [DS_CH%1Note],nRest
+    jz      .isrest2
+    mov     al,[DS_CH4LastNoise]
+    cmp     al,[DS_CH4Wave]
+    jz      .skipnoise
+    mov     al,[DS_CH4Wave]
+    mov     [DS_CH4LastNoise],al
+    or      al,Noise_Enable | Noise_Reset
+    out     REG_SND_NOISE,al
+
+    ret
+.skipnoise:
+    %endif
 
 .loadwave:
-    cmp     byte [DS_CH%1Volume],0
-    jz      .skipwave2
+    cmp     byte [DS_CH%1Note],nRest
+    jz      .isrest2
     mov     bl,[DS_CH%1Wave]
     mov     bh,0
     add     bx,bx
@@ -628,7 +666,7 @@ DS_UpdateRegisters_CH%1:
     add     di,((%1 - 1) << 4)
     mov     cl,8
     rep     cs movsw
-.skipwave2:
+.isrest2:
     ret
 %endmacro
     
@@ -643,11 +681,21 @@ DS_WavePointers:
     dw      DS_SineWave
     dw      DS_SquareWave
     dw      DS_SawtoothWave
+    dw      DS_TestWave1
+    dw      DS_TestWave2
+    dw      DS_TestWave3
+    dw      DS_TestWave4
+    dw      DS_TestWave5
 
 DS_DefaultWave:
 DS_SineWave:        wave    08,10,12,13,14,14,15,15,15,15,14,14,13,12,11,09,07,05,03,02,01,01,00,00,00,00,01,01,02,03,04,06
 DS_SquareWave:      wave    15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
 DS_SawtoothWave:    wave    00,00,01,01,02,02,03,03,04,04,05,05,06,06,07,07,08,08,09,09,10,10,11,11,12,12,13,13,14,14,15,15
+DS_TestWave1:       wave    0,3,4,6,9,12,15,15,14,11,8,5,2,1,7,10,10,8,6,5,4,4,3,3,2,1,0,0,0,0,0,0
+DS_TestWave2:       wave    15,13,10,8,6,4,2,0,1,3,5,7,10,12,15,12,10,8,7,4,3,0,0,3,5,6,7,9,11,13,15,15
+DS_TestWave3:       wave    0,1,2,3,4,5,6,6,7,6,6,5,4,3,2,1,0,15,14,13,12,11,10,10,9,10,10,11,12,13,14,15
+DS_TestWave4:       wave    15,15,15,15,15,15,15,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+DS_TestWave5:       wave    15,15,15,15,15,15,15,15,15,15,15,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 DS_FreqTable:
 ;            C-x   C#x   D-x   D#x   E-x   F-x   F#x   G-x   G#x   A-x   A#x   B-x
@@ -677,38 +725,48 @@ DS_TestVolumeSeqR:
     db  15,15,15,15,15,14,14,14,14,14,14,13,13,13,13,12,12,12,12,12,12,12,12,12,12,12,12,11,seq_end
 
 DS_TestWaveSeq:
-    db  2,seq_loop,1
+    db  0,0,0,0,0,0,0,0
+    db  1,1,1,1,1,1,1,1
+    db  2,2,2,2,2,2,2,2
+    db  3,3,3,3,3,3,3,3
+    db  4,4,4,4,4,4,4,4
+    db  5,5,5,5,5,5,5,5
+    db  6,6,6,6,6,6,6,6
+    db  7,7,7,7,7,7,7,7
+    db  seq_end
+    
 
 DS_TestArpSeq:
-    db  0,12,12,0,seq_end
+    db  0,seq_end
     
 DS_TestSequence1:
-    sound_instrument ins_Test
-    note    nC_5,4
-    note    nB_4,4
-    note    nC_5,4
-    note    nRest,1
+;    sound_instrument ins_Test
+;    note    nC_5,4
+;    note    nB_4,4
+;    note    nC_5,4
+;    note    nRest,1
     sound_end
 DS_TestSequence2:
-    sound_instrument ins_Test
-    note    nG_4,4
-    note    nF_4,4
-    note    nE_4,4
-    note    nRest,1
+;    sound_instrument ins_Test
+;    note    nG_4,4
+;    note    nF_4,4
+;    note    nE_4,4
+;    note    nRest,1
     sound_end
 DS_TestSequence3:
-    sound_instrument ins_Test
-    note    nC_4,4
-    note    nD_4,4
-    note    nC_4,4
+;    sound_instrument ins_Test
+;    note    nC_4,4
+;    note    nD_4,4
+;    note    nC_4,4
     note    nRest,1
     sound_end
 DS_TestSequence4:
     sound_instrument ins_Test
-    note    nG_3,4
-    note    nF_3,4
-    note    nE_3,4
-    note    nRest,1
+    note    nC_3,4
+    note    nRest,4
+    sound_togglemode
+    note    nC_3,4
+    note    nRest,4
     sound_end
 
 ; ================================================================
